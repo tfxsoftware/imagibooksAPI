@@ -11,9 +11,11 @@ cred = credentials.Certificate("C:\\imagibooks-firebase-adminsdk-6tgdr-99184fb4f
 firebase_app = initialize_app(cred)
 db = firestore.client()
 
-@app.route('/ai/recommend', methods=['GET'])
+@app.route('/ai/recommend', methods=['POST'])
 def recommend():
-    return jsonify({"message": str(services.recommendAndImage(1))})
+    data = request.json
+    print(data)
+    return jsonify(services.recommendAndImage(data))
 
 @app.route('/user/new', methods=['POST'])
 def newUser():

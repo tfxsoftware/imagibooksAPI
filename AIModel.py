@@ -2,9 +2,9 @@ from openai import OpenAI
 client = OpenAI()
 
 def generateRecommendation(quiz):
-    tipo = "futurista"
-    genero = "ficção"
-    books = ["star wars", "os vingadores", "sankofia"]
+    tipo = quiz["tipo"]
+    genero = quiz["genero"]
+    books = quiz["livros"]
 
     role = f"Voce é um vendedor de livros, mas faz recomedações de livros que existem no mundo real, sua resposta deve começar com o nome do livro, seguido por um ponto e então a explicação do por que ele seria interessante pra mim"
     prompt = f"Me recomende um livro do gênero {genero} em um mundo de {tipo}, outros livors que eu li {books[0]}, {books[1]} e {books[2]}"
@@ -17,5 +17,5 @@ def generateRecommendation(quiz):
         {"role": "user", "content": prompt}
     ]
     )
-    return completion.choices[0].message.content
+    return {"livro": completion.choices[0].message.content.split(",")[0], "text": completion.choices[0].message.content}
 

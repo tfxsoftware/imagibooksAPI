@@ -15,4 +15,4 @@ messages=[
     {"role": "user", "content": prompt}
 ]
 )
-print(completion.choices[0].message.content)
+print({"livro": completion.choices[0].message.content.split(",")[0].replace('"', "").replace(',', ""), "text": completion.choices[0].message.content})
