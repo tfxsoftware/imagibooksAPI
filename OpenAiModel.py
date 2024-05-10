@@ -1,5 +1,5 @@
 from openai import OpenAI
-client = OpenAI() ##COLOCAR CHAVE DA API AQUI <---- openai_api_key="chave"
+client = OpenAI() ##COLOCAR CHAVE DA API AQUI <----
 
 def generateRecommendation(quiz):
     tipo = quiz["tipo"]
