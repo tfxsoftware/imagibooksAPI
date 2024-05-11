@@ -2,7 +2,7 @@ import firebase_admin
 from firebase_admin import auth, firestore
 from flask import jsonify
 import json
-import OpenAiModel as ai
+import OpenChatGPTModel as ai
 
 def recommendAndImage(quiz):
     return ai.generateRecommendation(quiz)
