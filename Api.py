@@ -3,11 +3,19 @@ from flask import Flask, jsonify, request
 import firebase_admin
 from firebase_admin import credentials, firestore, initialize_app
 import json
+from AIRecomendation import rotas_blueprint
+from AIRecomendation import rotas_blueprint
+from FirebaseConfig import get_firebase_app
+
+firebase_app = get_firebase_app()
 
 app = Flask(__name__)
-cred = credentials.Certificate("C:\\imagibooks-firebase-adminsdk-6tgdr-20860514e5.json")
-firebase_app = initialize_app(cred)
+
+# Inicializar o SDK do Firebase
 db = firestore.client()
+
+# Registrar o Blueprint das rotas relacionadas à IA
+app.register_blueprint(rotas_blueprint)
 
 @app.route('/ai/recommend', methods=['POST'])
 def recommend():
@@ -25,9 +33,6 @@ def newUser():
 @app.route('/user/<string:userId>', methods=['GET'])
 def getUserById(userId):
     return services.getUserById(db, userId)
-
-
-
-
+    
 if __name__ == '__main__':
     app.run(debug=True)
