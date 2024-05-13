@@ -7,11 +7,12 @@ from firebase_admin import firestore
 from firebase_admin import credentials, firestore, initialize_app
 import firebase_admin
 from FirebaseConfig import get_firebase_app
+import time
 
 firebase_app = get_firebase_app()
 
 # Caminho para o conjunto de dados
-DATASET_PATH = 'C:/Users/maria/OneDrive/Área de Trabalho/Faculdade/IAPI5/BookRecomendationSystem/BookRecomendationSystem/datasets/data.csv'
+DATASET_PATH = 'D:\ImagiBooks\BookRecomendationSystem\datasets\data.csv'
 
 # Inicializar o cliente Firestore
 db = firestore.client()
@@ -55,12 +56,33 @@ def recomendar_livros():
         title_from_index = df.iloc[index]['title']
         recomendacoes.append(title_from_index)
 
-    # Enviar as recomendações e o userId para o banco de dados Firestore
-    doc_ref = db.collection('recomendacoes').document('livros_recomendados')
-    doc_ref.set({
-        'userId': userId,
-        'recomendacoes': recomendacoes
-    })
-    
+    # Obter a hora atual
+    timestamp = int(time.time())
+
+    # Verificar se o documento do usuário já existe
+    user_doc_ref = db.collection('users').document(userId)
+    user_doc = user_doc_ref.get()
+
+    if user_doc.exists:
+    # Atualizar o documento do usuário adicionando uma nova entrada ao array de recomendações
+        user_data = user_doc.to_dict()
+        if 'recomendacoes' not in user_data:
+            user_data['recomendacoes'] = []
+        user_data['recomendacoes'].append({
+            'livros_recomendados': recomendacoes,
+            'livro_inserido': titulo_livro,
+            'timestamp': timestamp
+        })
+        user_doc_ref.update(user_data)
+    else:
+        # Criar um novo documento do usuário
+        user_doc_ref.set({
+            'recomendacoes': [{
+                'livros_recomendados': recomendacoes,
+                'livro_inserido': titulo_livro,
+                'timestamp': timestamp
+            }]
+        })
+
     # Retornar as recomendações para o frontend
     return jsonify({'recomendacoes': recomendacoes})
