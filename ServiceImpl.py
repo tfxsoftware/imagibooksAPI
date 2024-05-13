@@ -1,26 +1,37 @@
+import time
 import firebase_admin
 from firebase_admin import auth, firestore
 from flask import jsonify
 import json
-import OpenChatGPTModel as ai
+import OpenAiModel
+import AIRecomendation
 
-def recommendAndImage(quiz):
-    return ai.generateRecommendation(quiz)
+def recommendBook(userId, book, db):
+    books = AIRecomendation.recommendBooks(book)
+    saveRecommendations(userId, books, book, db)
+    text = OpenAiModel.generateExplanation(books, book)
+    print({"livros": books, "texto": str(text)})
+    return(jsonify({"livros": books, "texto": str(text)}))
+
+
+
 
 def newUser(db, data):
     user = json.loads(data)
     
-   
-    doc_ref = db.collection('users').add(user)
-    user_id = doc_ref.id
-    
+    # Call add() method and unpack the tuple
+    _, doc_ref = db.collection('users').add(user)
     
     try:
-        auth.create_user(uid=user_id)
+        # Retrieve the document ID from the DocumentReference object
+        doc_id = doc_ref.id
+        
+        # Use doc_id to create the authentication user
+        auth.create_user(uid=doc_id)
         return jsonify({'message': 'Usuario criado com sucesso'}), 200
     except Exception as e:
-        
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': str(e)}), 500 
+
     
 def getUserById(db, doc_id):
     try:
@@ -32,4 +43,29 @@ def getUserById(db, doc_id):
             return jsonify({'message': 'Usuario nao encontrado'}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+def saveRecommendations(userId, books, book, db):
+    user_doc_ref = db.collection('users').document(userId)
+    user_doc = user_doc_ref.get()
+
+    if user_doc.exists:
+    # Atualizar o documento do usuário adicionando uma nova entrada ao array de recomendações
+        user_data = user_doc.to_dict()
+        if 'recomendacoes' not in user_data:
+            user_data['recomendacoes'] = []
+        user_data['recomendacoes'].append({
+            'livros_recomendados': books,
+            'livro_inserido': book,
+            'timestamp': int(time.time())
+        })
+        user_doc_ref.update(user_data)
+    else:
+        # Criar um novo documento do usuário
+        user_doc_ref.set({
+            'recomendacoes': [{
+                'livros_recomendados': books,
+                'livro_inserido': book,
+                'timestamp': int(time.time())
+            }]
+        })
     
