@@ -10,8 +10,9 @@ def recommendBook(userId, book, db):
     books = AIRecomendation.recommendBooks(book)
     saveRecommendations(userId, books, book, db)
     text = OpenAiModel.generateExplanation(books, book)
-    print({"livros": books, "texto": str(text)})
-    return(jsonify({"livros": books, "texto": str(text)}))
+    # Retornar um dicionário Python simples, não um objeto jsonify
+    return {"livros": books, "texto": str(text)}
+
 
 
 
