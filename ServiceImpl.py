@@ -20,14 +20,12 @@ def recommendBook(userId, book, db):
 def newUser(db, data):
     user = json.loads(data)
     
-    # Call add() method and unpack the tuple
     _, doc_ref = db.collection('users').add(user)
-    
     try:
-        # Retrieve the document ID from the DocumentReference object
+        
         doc_id = doc_ref.id
         
-        # Use doc_id to create the authentication user
+        
         auth.create_user(uid=doc_id)
         return jsonify({'message': 'Usuario criado com sucesso'}), 200
     except Exception as e:
