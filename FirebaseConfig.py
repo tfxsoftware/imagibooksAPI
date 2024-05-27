@@ -10,3 +10,4 @@ def get_firebase_app():
         cred = credentials.Certificate(CREDENTIALS_PATH)
         firebase_app = initialize_app(cred)
     return firebase_app
+

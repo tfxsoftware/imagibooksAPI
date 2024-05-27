@@ -14,22 +14,20 @@ def recommendBook(userId, book, db):
     return {"livros": books, "texto": str(text)}
 
 
-
-
-
 def newUser(db, data):
-    user = json.loads(data)
-    
-    _, doc_ref = db.collection('users').add(user)
     try:
-        
+        user = json.loads(data)
+        _, doc_ref = db.collection('users').add(user)
         doc_id = doc_ref.id
+
+        # Criação do usuário no Firebase Auth
+        auth.create_user(uid=doc_id, email=user.get('email'), password=user.get('senha'))
         
-        
-        auth.create_user(uid=doc_id)
         return jsonify({'message': 'Usuario criado com sucesso'}), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500 
+        return jsonify({'error': str(e)}), 500
+
+
 
     
 def getUserById(db, doc_id):
