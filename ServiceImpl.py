@@ -60,3 +60,37 @@ def getUserById(db, doc_id):
             return jsonify({'message': 'Usuario nao encontrado'}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+def saveRecommendations(userId, books, book, db):
+    user_doc_ref = db.collection('users').document(userId)
+    user_doc = user_doc_ref.get()
+
+    if user_doc.exists:
+        user_data = user_doc.to_dict()
+        if 'recomendacoes' not in user_data:
+            user_data['recomendacoes'] = []
+        user_data['recomendacoes'].append({
+            'livros_recomendados': books,
+            'livro_inserido': book,
+            'timestamp': int(time.time())
+        })
+        user_doc_ref.update(user_data)
+        logging.info(f"Recomendações salvas para o usuário {userId}: {user_data['recomendacoes']}")
+    else:
+        user_doc_ref.set({
+            'recomendacoes': [{
+                'livros_recomendados': books,
+                'livro_inserido': book,
+                'timestamp': int(time.time())
+            }]
+        })
+        logging.info(f"Novo documento de usuário criado para {userId} com recomendações: {books}")
+
+def saveChecklist(userId, checklist, db):
+    checklist_ref = db.collection('checklist').document(userId)
+    checklist_ref.set({
+        'checklist': checklist,
+        'timestamp': int(time.time())
+    })
+    logging.info(f"Checklist salvo para o usuário {userId}: {checklist}")
+
