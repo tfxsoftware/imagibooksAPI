@@ -52,14 +52,25 @@ def newUser(db, data):
 
 def getUserById(db, doc_id):
     try:
-        doc_ref = db.collection('users').document(doc_id)
-        doc = doc_ref.get()
-        if doc.exists:
-            return doc.to_dict(), 200
+        user_doc_ref = db.collection('users').document(doc_id)
+        user_doc = user_doc_ref.get()
+        if user_doc.exists:
+            user_data = user_doc.to_dict()
+
+            # Obter checklist do Firestore
+            checklist_ref = db.collection('checklist').document(doc_id)
+            checklist_doc = checklist_ref.get()
+            if checklist_doc.exists:
+                user_data['checklist'] = checklist_doc.to_dict()
+            else:
+                user_data['checklist'] = {}
+
+            return jsonify(user_data), 200
         else:
             return jsonify({'message': 'Usuario nao encontrado'}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 def saveRecommendations(userId, books, book, db):
     user_doc_ref = db.collection('users').document(userId)
