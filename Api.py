@@ -53,6 +53,8 @@ def getUserById(userId):
         app.logger.error(f'Error fetching user: {str(e)}')
         return jsonify({'error': str(e)}), 500
 
+
+
 @app.route('/user/checklist/<string:userId>', methods=['POST'])
 def saveChecklist(userId):
     try:
@@ -82,6 +84,89 @@ def saveChecklist(userId):
     except Exception as e:
         app.logger.error(f'Error saving checklist: {str(e)}')
         return jsonify({'error': str(e)}), 500
+
+@app.route('/user/checklist/<string:userId>', methods=['GET'])
+def getChecklist(userId):
+    try:
+        checklist_ref = db.collection('checklist').document(userId)
+        checklist_doc = checklist_ref.get()
+        if checklist_doc.exists:
+            return jsonify(checklist_doc.to_dict()), 200
+        else:
+            return jsonify({'message': 'Checklist não encontrada'}), 404
+    except Exception as e:
+        app.logger.error(f'Error fetching checklist: {str(e)}')
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/user/comment/<string:userId>', methods=['POST'])
+def saveComment(userId):
+    try:
+        data = request.json
+        livro = data.get('livro')
+        comentario = data.get('comentario')
+        
+        if not livro or not comentario:
+            return jsonify({'error': 'Dados incompletos'}), 400
+
+        comment_ref = db.collection('comments').document(userId).collection('livros').document(livro)
+        comment_ref.set({'comentario': comentario})
+        
+        return jsonify({'message': 'Comentário salvo com sucesso'}), 200
+    except Exception as e:
+        app.logger.error(f'Error saving comment: {str(e)}')
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/user/comment/<string:userId>/<string:livro>', methods=['GET'])
+def fetchComment(userId, livro):
+    try:
+        comment_ref = db.collection('comments').document(userId).collection('livros').document(livro)
+        comment_doc = comment_ref.get()
+        
+        if comment_doc.exists:
+            return jsonify(comment_doc.to_dict()), 200
+        else:
+            return jsonify({'comentario': ''}), 200
+    except Exception as e:
+        app.logger.error(f'Error fetching comment: {str(e)}')
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/user/rating/<string:userId>', methods=['POST'])
+def saveRating(userId):
+    try:
+        data = request.json
+        livro = data.get('livro')
+        rating = data.get('rating')
+        
+        if not livro or rating is None:
+            return jsonify({'error': 'Dados incompletos'}), 400
+
+        rating_ref = db.collection('ratings').document(userId).collection('livros').document(livro)
+        rating_ref.set({'rating': rating})
+        
+        return jsonify({'message': 'Avaliação salva com sucesso'}), 200
+    except Exception as e:
+        app.logger.error(f'Error saving rating: {str(e)}')
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/user/rating/<string:userId>/<string:livro>', methods=['GET'])
+def fetchRating(userId, livro):
+    try:
+        rating_ref = db.collection('ratings').document(userId).collection('livros').document(livro)
+        rating_doc = rating_ref.get()
+        
+        if rating_doc.exists:
+            return jsonify(rating_doc.to_dict()), 200
+        else:
+            return jsonify({'rating': 0}), 200
+    except Exception as e:
+        app.logger.error(f'Error fetching rating: {str(e)}')
+        return jsonify({'error': str(e)}), 500
+
+
+
+
+
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
