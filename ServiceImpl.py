@@ -1,7 +1,7 @@
 import time
 import firebase_admin
 from firebase_admin import auth, firestore
-from flask import jsonify
+from flask import jsonify, request
 import json
 import OpenAiModel
 import AIRecomendation
@@ -38,17 +38,22 @@ def saveRecommendations(userId, books, book, db):
 
 def newUser(db, data):
     try:
-        user = json.loads(data)
+        user = data
+        email = user.get('email')
+        senha = user.get('senha')
+        
+        # Adiciona o usuário ao Firestore
         _, doc_ref = db.collection('users').add(user)
         doc_id = doc_ref.id
-
-        auth.create_user(uid=doc_id, email=user.get('email'), password=user.get('senha'))
+        
+        # Adiciona o usuário ao Firebase Authentication
+        auth.create_user(uid=doc_id, email=email, password=senha)
         
         logging.info(f"User created with ID: {doc_id}")
         return doc_id
     except Exception as e:
         logging.error(f"Error creating user: {e}")
-        return jsonify({'error': str(e)}), 500
+        raise e
 
 def getUserById(db, doc_id):
     try:

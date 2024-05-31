@@ -3,9 +3,10 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import ServiceImpl as services
 import json
-from firebase_admin import firestore
 from FirebaseConfig import get_firebase_app
 import re
+import firebase_admin
+from firebase_admin import credentials, auth, firestore
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -34,15 +35,36 @@ def recommend():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/user/new', methods=['POST'])
-def newUser():
+def createNewUser():
     try:
         data = request.json
         app.logger.info(f'Received data: {data}')  
-        json_data = json.dumps(data)
-        user_id = services.newUser(db, json_data)
+        
+        # Chama a função que cria o usuário
+        user_id = services.newUser(db, data)
+        
         return jsonify({'userId': user_id}), 200
     except Exception as e:
         app.logger.error(f'Error creating new user: {str(e)}')
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/user/login', methods=['POST'])
+def loginUser():
+    try:
+        data = request.json
+        user_id = data.get('userId')
+
+        if not user_id:
+            return jsonify({'error': 'userId is required'}), 400
+
+        # Tentando obter o usuário pelo uid
+        user = auth.get_user(user_id)
+
+        return jsonify({'message': 'Login successful', 'userId': user.uid}), 200
+    except firebase_admin.auth.UserNotFoundError:
+        return jsonify({'error': 'User not found'}), 404
+    except Exception as e:
+        app.logger.error(f'Error logging in user: {str(e)}')
         return jsonify({'error': str(e)}), 500
 
 @app.route('/user/<string:userId>', methods=['GET'])
